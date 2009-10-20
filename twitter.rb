@@ -7,6 +7,8 @@
 require 'net/http'
 require 'rexml/document'
 
+Host = "twitter.com"
+
 class Twitter
   attr_reader :user_id, :users, :res
 
@@ -19,16 +21,15 @@ class Twitter
 
   # ログイン (verify_credentials)
   def login(user = nil, pass = nil)
-    url = "http://twitter.com/account/verify_credentials.xml"
+    path = "/account/verify_credentials.xml"
 
     @user = user if user != nil
     @pass = pass if pass != nil
 
-    uri = URI.parse(url)
-    req = Net::HTTP::Get.new(uri.path)
+    req = Net::HTTP::Get.new(path)
     req.basic_auth(@user, @pass)
 
-    res = Net::HTTP.start(uri.host) { |http|
+    res = Net::HTTP.start(Host) { |http|
       http.request(req)
     }
 
@@ -50,34 +51,33 @@ class Twitter
 
   # つぶやく (update) 
   def update(msg)
-    url = "http://twitter.com/statuses/update.xml"
+    path = "/statuses/update.xml"
     param = "status="
 
-    uri = URI.parse(url)
-    req = Net::HTTP::Post.new(uri.path)
+    return if msg.length > 140
+
+    req = Net::HTTP::Post.new(path)
     req.basic_auth(@user, @pass)
     req.body = param + msg
 
-    res = Net::HTTP.start(uri.host) { |http|
+    res = Net::HTTP.start(Host) { |http|
       http.request(req)
     }
 
-    p res
     @res = res
   end
 
   # friends timeline
   def friends_timeline(page = nil)
-    url = "http://twitter.com/statuses/friends_timeline.xml"
+    path = "/statuses/friends_timeline.xml"
     param = "?page="
 
-    url += param + page.to_s if page != nil && page > 0
+    path += param + page.to_s if page != nil && page > 0
 
-    uri = URI.parse(url)
-    req = Net::HTTP::Get.new(uri.path)
+    req = Net::HTTP::Get.new(path)
     req.basic_auth(@user, @pass)
 
-    res = Net::HTTP.start(uri.host) { |http|
+    res = Net::HTTP.start(Host) { |http|
       http.request(req)
     }
 
