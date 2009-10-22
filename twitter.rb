@@ -4,18 +4,22 @@
 #
 # Twitterクライアントクラス
 #
-require 'net/http'
+require 'net/https'
 require 'rexml/document'
 
-Host = "twitter.com"
+HOST = "twitter.com"
+GET = "GET"
+POST = "POST"
 
 class Twitter
   attr_reader :user_id, :users, :res
 
-  def initialize(user = nil, pass = nil)
+  def initialize(user = nil, pass = nil, ssl = false)
     @user = user
     @pass = pass
+    @ssl = ssl
 
+    @port = (ssl == true) ? 443 : 80
     @users = Hash.new
   end
 
@@ -26,11 +30,9 @@ class Twitter
     @user = user if user != nil
     @pass = pass if pass != nil
 
-    req = Net::HTTP::Get.new(path)
-    req.basic_auth(@user, @pass)
-
-    res = Net::HTTP.start(Host) { |http|
-      http.request(req)
+    req = request(GET, path)
+    res = http.start { |h|
+      h.request(req)
     }
 
     @res = res
@@ -56,12 +58,11 @@ class Twitter
 
     return if msg.length > 140
 
-    req = Net::HTTP::Post.new(path)
-    req.basic_auth(@user, @pass)
-    req.body = param + msg
 
-    res = Net::HTTP.start(Host) { |http|
-      http.request(req)
+    req = request(POST, path)
+    req.body = param + msg
+    res = http.start { |h|
+      h.request(req)
     }
 
     @res = res
@@ -74,11 +75,9 @@ class Twitter
 
     path += param + page.to_s if page != nil && page > 0
 
-    req = Net::HTTP::Get.new(path)
-    req.basic_auth(@user, @pass)
-
-    res = Net::HTTP.start(Host) { |http|
-      http.request(req)
+    req = request(GET, path)
+    res = http.start { |h|
+      h.request(req)
     }
 
     @res = res
@@ -96,6 +95,30 @@ class Twitter
  
     return statuses
   end
+
+  def request(method, path)
+    case method
+    when GET
+      req = Net::HTTP::Get.new(path)
+    when POST
+      req = Net::HTTP::Post.new(path)
+    else
+      return nil
+    end
+    req.basic_auth(@user, @pass)
+
+    return req
+  end
+  private :request
+
+  def http
+    h = Net::HTTP.new(HOST, @port)
+    h.use_ssl = @ssl
+    h.verify_mode = OpenSSL::SSL::VERIFY_NONE if @ssl == true # とりあえず未チェック
+
+    return h
+  end
+  private :http
 
   # ステータス情報
   #  まだ一部の情報しか保持していない
