@@ -5,6 +5,7 @@
 # Twitterクライアントクラス
 #
 require 'net/https'
+require 'cgi'
 require 'rexml/document'
 
 class Twitter
@@ -49,7 +50,7 @@ class Twitter
 
     return if message.length > 140  # 例外の方がいいかな？
 
-    res = request(POST, path, param + message)
+    res = request(POST, path, param + CGI.escape(message))
   end
 
   # friends timeline
