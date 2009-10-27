@@ -17,12 +17,12 @@ class Twitter
 
   attr_reader :user_id, :users
 
-  def initialize(user, pass, enable_ssl = false)
+  def initialize(user, pass, use_ssl = false)
     @user = user
     @pass = pass
-    @enable_ssl = enable_ssl
+    @use_ssl = use_ssl
 
-    @port = (enable_ssl == true) ? HTTPS_PORT : HTTP_PORT
+    @port = (use_ssl == true) ? HTTPS_PORT : HTTP_PORT
     @users = Hash.new
   end
 
@@ -33,11 +33,11 @@ class Twitter
     res = request(GET, path)
 
     doc = REXML::Document.new(res.body)
-    doc.elements.each('user') { |user|
+    doc.elements.each('user') do |user|
       my = User.parse(user)
       @user_id = my.id
       @users[@user_id] = my if @users[@user_id] == nil
-    }
+    end
 
     # 保存しておくけど、クッキーで再認証は出来ないっぽいな
     @cookie = res.get_fields('set-cookie')
@@ -48,7 +48,7 @@ class Twitter
     path = "/statuses/update.xml"
     param = "status="
 
-    return if message.length > 140  # 例外の方がいいかな？
+    raise ArgumentError, "Too long (>140)" if message.length > 140
 
     res = request(POST, path, param + CGI.escape(message))
   end
@@ -64,11 +64,11 @@ class Twitter
 
     statuses = []
     doc = REXML::Document.new(res.body)
-    doc.elements.each('statuses/status') { |status|
+    doc.elements.each('statuses/status') do |status|
       user = User.parse(status.elements['user'])
       @users[user.id] = user if @users[user.id] == nil
       statuses << Status.parse(status, user.id)
-    }
+    end
  
     return statuses
   end
@@ -80,18 +80,18 @@ class Twitter
     when :post
       req = Net::HTTP::Post.new(path)
     else
-      return nil # 例外の方がいいかな？
+      raise ArgumentError, "Invalid parameter method: #{method}"
     end
     req.basic_auth(@user, @pass)
     req.body = body if body != nil
 
     http = Net::HTTP.new(HOST, @port)
-    http.use_ssl = @enable_ssl
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE if @enable_ssl == true # とりあえず未チェック
+    http.use_ssl = @use_ssl
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE if @use_ssl == true # とりあえず未チェック
 
-    response = http.start { |h|
+    response = http.start do |h|
       h.request(req)
-    }
+    end
 
     if response.class != Net::HTTPOK
       return nil # 例外の方がいいかな？
