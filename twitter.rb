@@ -22,7 +22,6 @@ class Twitter
     @pass = pass
     @use_ssl = use_ssl
 
-    @port = (use_ssl == true) ? HTTPS_PORT : HTTP_PORT
     @users = Hash.new
   end
 
@@ -73,6 +72,7 @@ class Twitter
     return statuses
   end
 
+  # http request
   def request(method, path, body = nil)
     case method
     when :get
@@ -85,7 +85,9 @@ class Twitter
     req.basic_auth(@user, @pass)
     req.body = body if body != nil
 
-    http = Net::HTTP.new(HOST, @port)
+    port = (@use_ssl == true) ? HTTPS_PORT : HTTP_PORT
+
+    http = Net::HTTP.new(HOST, port)
     http.use_ssl = @use_ssl
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE if @use_ssl == true # とりあえず未チェック
 
