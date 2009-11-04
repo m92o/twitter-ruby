@@ -31,11 +31,10 @@ class Twitter
 
     res = request(GET, path)
 
-    doc = REXML::Document.new(res.body)
-    doc.elements.each('user') do |user|
+    REXML::Document.new(res.body).elements.each('user') do |user|
       my = User.parse(user)
       @user_id = my.id
-      @users[@user_id] = my if @users[@user_id] == nil
+      @users[@user_id] ||= my
     end
 
     # 保存しておくけど、クッキーで再認証は出来ないっぽいな
@@ -62,10 +61,9 @@ class Twitter
     res = request(GET, path)
 
     statuses = []
-    doc = REXML::Document.new(res.body)
-    doc.elements.each('statuses/status') do |status|
+    REXML::Document.new(res.body).elements.each('statuses/status') do |status|
       user = User.parse(status.elements['user'])
-      @users[user.id] = user if @users[user.id] == nil
+      @users[user.id] ||= user
       statuses << Status.parse(status, user.id)
     end
  
