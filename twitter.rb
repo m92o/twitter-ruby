@@ -21,24 +21,23 @@ class Twitter
     @user = user
     @pass = pass
     @use_ssl = use_ssl
-
-    @users = Hash.new
   end
 
-  # ログイン (verify_credentials)
-  def login()
+  # verify_credentials
+  def verify_credentials()
     path = "/account/verify_credentials.xml"
 
     res = request(GET, path)
-
-    REXML::Document.new(res.body).elements.each('user') do |user|
-      my = User.parse(user)
-      @user_id = my.id
-      @users[@user_id] ||= my
+    user = nil
+    REXML::Document.new(res.body).elements.each('user') do |u|
+      user = User.parse(u)
+      @user_id = user.id
     end
 
     # 保存しておくけど、クッキーで再認証は出来ないっぽいな
     @cookie = res.get_fields('set-cookie')
+
+    return user
   end
 
   # アップデート (つぶやく)
@@ -61,13 +60,14 @@ class Twitter
     res = request(GET, path)
 
     statuses = []
+    users = Hash.new
     REXML::Document.new(res.body).elements.each('statuses/status') do |status|
       user = User.parse(status.elements['user'])
-      @users[user.id] ||= user
+      users[user.id] ||= user
       statuses << Status.parse(status, user.id)
     end
  
-    return statuses
+    return statuses, users
   end
 
   # http request
