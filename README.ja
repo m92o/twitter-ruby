@@ -1,0 +1,44 @@
+#
+# Ruby用 Twitterクライアントライブラリ
+#
+# Copyright (c) 2009 Kunio Murasawa <kunio.murasawa@gmail.com>
+#
+
+名前
+ twitter.rb
+
+作者
+ Kunio Murasawa <kunio.murasawa@gmail.com>
+
+対応機能
+ - タイムライン
+  - friends_timeline
+
+ - ステータス
+  - update
+
+ - アカウント
+  - verify credentials
+
+取得方法
+ $ git clone git://github.com/m92o/twitter-ruby.git twitter-ruby
+
+使い方
+ - 初期化
+  twitter = Twitter.new("USERNAME", "PASSWORD", false)
+
+ - 自分のユーザ情報取得
+  user = twitter.verify_credentials
+
+ - タイムライン取得
+  statuses, users := twiiter.friends_timeline
+
+ - アップテート（つぶやく）
+　twitter.update("メッセージ");
+
+Twitter API Wiki
+ http://apiwiki.twitter.com/
+
+ライセンス
+ BSDライセンス
+ 詳細は附属のLICENCEファイルを参照
