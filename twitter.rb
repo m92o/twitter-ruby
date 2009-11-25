@@ -15,7 +15,7 @@ class Twitter
   GET = :get
   POST = :post
 
-  attr_reader :user_id, :users
+  attr_reader :user_id
 
   def initialize(user, pass, use_ssl = false)
     @user = user

@@ -34,7 +34,7 @@
   statuses, users := twiiter.friends_timeline
 
  - アップテート（つぶやく）
-　twitter.update("メッセージ");
+　twitter.update("メッセージ")
 
 Twitter API Wiki
  http://apiwiki.twitter.com/
