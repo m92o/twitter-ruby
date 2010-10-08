@@ -7,6 +7,7 @@
 require 'net/https'
 require 'cgi'
 require 'rexml/document'
+require 'oauth'
 
 class Twitter
   HOST = "twitter.com"
@@ -17,9 +18,11 @@ class Twitter
 
   attr_reader :user_id
 
-  def initialize(user, pass, use_ssl = false)
-    @user = user
-    @pass = pass
+  def initialize(consumer_key, consumer_secret, oauth_token, oauth_token_secret, use_ssl = false)
+    @consumer_key = consumer_key
+    @consumer_secret = consumer_secret
+    @oauth_token = oauth_token
+    @oauth_token_secret = oauth_token_secret
     @use_ssl = use_ssl
   end
 
@@ -47,7 +50,7 @@ class Twitter
 
     raise ArgumentError, "Too long (>140)" if message.length > 140
 
-    res = request(POST, path, param + CGI.escape(message))
+    res = request(POST, path, param + message)
   end
 
   # friends timeline
@@ -72,16 +75,20 @@ class Twitter
 
   # http request
   def request(method, path, body = nil)
+    url = (@use_ssl == true) ? "https://" : "http://"
+    url += HOST + path
+    oauth = OAuth.new(@consumer_key, @consumer_secret, @oauth_token, @oauth_token_secret)
+    header = oauth.auth_header(method, url, body)
+
     case method
     when :get
-      req = Net::HTTP::Get.new(path)
+      req = Net::HTTP::Get.new(path, header)
     when :post
-      req = Net::HTTP::Post.new(path)
+      req = Net::HTTP::Post.new(path, header)
     else
       raise ArgumentError, "Invalid parameter method: #{method}"
     end
-    req.basic_auth(@user, @pass)
-    req.body = body if body != nil
+    req.body = body
 
     port = (@use_ssl == true) ? HTTPS_PORT : HTTP_PORT
 

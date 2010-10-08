@@ -1,16 +1,15 @@
 #
 # Ruby用 Twitterクライアントライブラリ
 #
-# Copyright (c) 2009 Kunio Murasawa <kunio.murasawa@gmail.com>
+# Copyright (c) 2009-2010 Kunio Murasawa <kunio.murasawa@gmail.com>
 #
-
-名前
- twitter.rb
 
 作者
  Kunio Murasawa <kunio.murasawa@gmail.com>
 
 対応機能
+ - OAuth
+
  - タイムライン
   - friends_timeline
 
@@ -24,8 +23,21 @@
  $ git clone git://github.com/m92o/twitter-ruby.git twitter-ruby
 
 使い方
+ - アクセストークン取得ユーティリティ
+  - リクエストトークン(仮OAUTH_TOKEN)取得
+   $ ruby requesttoken.rb CONSUMER_KEY CONSUMER_SECRET
+
+  - OAuth Verifier取得
+   リクエストトークン取得で得た、OAuth Virifier URLにブラウザでアクセスし許可を出す
+
+  - アクセストークン(OAUTH_TOKEN)取得
+   $ ruby requesttoken.rb CONSUMER_KEY CONSUMER_SECRET OAUTH_TOKEN OAUTH_TOKEN_SECRET OAUTH_VERIFIER
+
+ - ライブラリ読み込み
+  require 'twitter'
+
  - 初期化
-  twitter = Twitter.new("USERNAME", "PASSWORD", false)
+  twitter = Twitter.new(CONSUMER_KEY, CONSUMER_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET, false)
 
  - 自分のユーザ情報取得
   user = twitter.verify_credentials
@@ -33,8 +45,11 @@
  - タイムライン取得
   statuses, users := twiiter.friends_timeline
 
- - アップテート（つぶやく）
-　twitter.update("メッセージ")
+ - アップデート（つぶやく）
+  twitter.update("メッセージ")
+
+既知のバグ
+ - updateのメッセージにイコール「=」が入っていると認証エラーになる
 
 Twitter API Wiki
  http://apiwiki.twitter.com/
